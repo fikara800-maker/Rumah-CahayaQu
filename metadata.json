@@ -1,0 +1,11 @@
+{
+  "name": "Remix Remix Remix Remix Remix Rumah CahayaQu",
+  "description": "An all-in-one digital platform for tutoring centers featuring interactive growth tracking, attendance, billing, and seamless parent-teacher communication.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

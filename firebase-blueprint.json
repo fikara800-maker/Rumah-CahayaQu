@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "students": {
+      "title": "Students",
+      "description": "Student roster in Rumah CahayaQu",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "className": { "type": "string" },
+        "parentName": { "type": "string" },
+        "parentPhone": { "type": "string" }
+      },
+      "required": ["name", "className", "parentName", "parentPhone"]
+    },
+    "attendance": {
+      "title": "Attendance",
+      "description": "Student attendance records",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "date": { "type": "string" },
+        "timeIn": { "type": "string" },
+        "timeOut": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["studentId", "studentName", "date", "status"]
+    },
+    "assessments": {
+      "title": "Assessments",
+      "description": "Student development and assessment scores",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "subject": { "type": "string" },
+        "date": { "type": "string" },
+        "aspects": { "type": "array" },
+        "notes": { "type": "string" },
+        "teacherName": { "type": "string" }
+      },
+      "required": ["studentId", "studentName", "subject", "date"]
+    },
+    "activities": {
+      "title": "Daily Activities",
+      "description": "Daily activities and media posts",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaType": { "type": "string" },
+        "date": { "type": "string" },
+        "targetClass": { "type": "string" }
+      },
+      "required": ["title", "description", "date"]
+    },
+    "chats": {
+      "title": "Chat Messages",
+      "description": "Communication messages between parents and teachers",
+      "type": "object",
+      "properties": {
+        "sender": { "type": "string" },
+        "senderName": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "status": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "readAt": { "type": "string" },
+        "deliveredAt": { "type": "string" }
+      },
+      "required": ["sender", "message", "timestamp"]
+    },
+    "invoices": {
+      "title": "Invoices",
+      "description": "SPP and billing invoices",
+      "type": "object",
+      "properties": {
+        "invoiceNo": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "parentName": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string" },
+        "billingMonth": { "type": "string" }
+      },
+      "required": ["invoiceNo", "studentId", "amount", "status"]
+    },
+    "schedules": {
+      "title": "Schedules",
+      "description": "Class schedules",
+      "type": "object",
+      "properties": {
+        "day": { "type": "string" },
+        "timeSlot": { "type": "string" },
+        "className": { "type": "string" },
+        "subject": { "type": "string" },
+        "teacherName": { "type": "string" }
+      },
+      "required": ["day", "timeSlot", "className", "subject"]
+    },
+    "broadcasts": {
+      "title": "Broadcast Messages",
+      "description": "Announcements and broadcast messages",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["title", "content", "date"]
+    }
+  }
+}

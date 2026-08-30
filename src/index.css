@@ -1,0 +1,509 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+@import "leaflet/dist/leaflet.css";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", "Plus Jakarta Sans", sans-serif;
+
+  --color-brand-primary: #8A4C93;
+  --color-brand-primary-hover: #783C80;
+  --color-brand-accent: #E2B34B;
+  --color-brand-bg: #FCFAF7;
+  --color-brand-dark: #1E1B24;
+  --color-brand-muted: #665F6E;
+  --color-brand-light: #F8F4EE;
+  
+  --shadow-premium: 0 4px 20px -2px rgba(138, 76, 147, 0.06), 0 2px 6px -1px rgba(138, 76, 147, 0.02);
+  --shadow-premium-hover: 0 12px 32px -4px rgba(138, 76, 147, 0.12), 0 4px 12px -2px rgba(138, 76, 147, 0.04);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-dark);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+}
+
+/* Typography Hierarchy Scale */
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+}
+
+/* Form input clarity */
+input, textarea, select, button {
+  font-family: var(--font-sans);
+}
+
+/* Dark Mode Styles - Fully WCAG AA Compliant */
+html.dark body {
+  background-color: #121217;
+  color: #F5F5FA;
+}
+
+/* Surface hierarchy */
+html.dark .bg-brand-bg {
+  background-color: #121217 !important;
+}
+
+html.dark .bg-white {
+  background-color: #1E1D26 !important;
+  color: #F5F5FA !important;
+  border-color: #3C3B4E !important;
+}
+
+html.dark .bg-\[\#FAF7F2\],
+html.dark .bg-\[\#FAF6F0\],
+html.dark .bg-\[\#FAF8F5\],
+html.dark .bg-\[\#FAFAF8\],
+html.dark .bg-\[\#F5F1EB\],
+html.dark .bg-\[\#FAF0E6\],
+html.dark .bg-\[\#FBF9F6\],
+html.dark .bg-\[\#F8F5F0\],
+html.dark .bg-\[\#F9F7FA\],
+html.dark .bg-\[\#FFFDF9\],
+html.dark .bg-brand-light,
+html.dark .bg-brand-light\/50,
+html.dark .bg-brand-light\/60,
+html.dark .bg-gray-50,
+html.dark .bg-gray-100 {
+  background-color: #282734 !important;
+  color: #F5F5FA !important;
+  border-color: #3C3B4E !important;
+}
+
+html.dark .bg-gray-200,
+html.dark .bg-gray-300 {
+  background-color: #38374A !important;
+}
+
+/* Text Hierarchy - High Contrast WCAG AA (Contrast > 4.5:1 for body, > 7:1 for headings) */
+html.dark .text-brand-dark,
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-black {
+  color: #F5F5FA !important;
+}
+
+html.dark .text-gray-700,
+html.dark .text-gray-600 {
+  color: #D4D3E2 !important;
+}
+
+html.dark .text-brand-muted,
+html.dark .text-gray-500,
+html.dark .text-gray-400 {
+  color: #A9A8BD !important;
+}
+
+/* Brand Colors in Dark Mode */
+html.dark .text-brand-primary {
+  color: #D898E6 !important;
+}
+
+html.dark .text-brand-accent {
+  color: #F7CE78 !important;
+}
+
+/* Status & Semantic Colors (Passes WCAG AA with contrast > 7.5:1) */
+/* Emerald / Green / Hadir / Lunas */
+html.dark .text-emerald-900,
+html.dark .text-emerald-800,
+html.dark .text-emerald-700,
+html.dark .text-emerald-600,
+html.dark .text-green-900,
+html.dark .text-green-800,
+html.dark .text-green-700,
+html.dark .text-green-600 {
+  color: #6EE7B7 !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-green-50,
+html.dark .bg-emerald-100,
+html.dark .bg-green-100,
+html.dark .bg-emerald-100\/80,
+html.dark .bg-green-100\/80,
+html.dark .bg-emerald-500\/10,
+html.dark .bg-emerald-500\/15 {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+html.dark .border-emerald-200,
+html.dark .border-green-200,
+html.dark .border-emerald-300,
+html.dark .border-green-300 {
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+
+/* Amber / Yellow / Terlambat / Tertunda */
+html.dark .text-amber-900,
+html.dark .text-amber-800,
+html.dark .text-amber-700,
+html.dark .text-amber-600,
+html.dark .text-yellow-900,
+html.dark .text-yellow-800,
+html.dark .text-yellow-700,
+html.dark .text-orange-700,
+html.dark .text-\[\#9A731C\] {
+  color: #FCD34D !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-yellow-50,
+html.dark .bg-amber-100,
+html.dark .bg-yellow-100,
+html.dark .bg-amber-100\/80,
+html.dark .bg-amber-500\/10,
+html.dark .bg-amber-500\/15,
+html.dark .bg-\[\#FEF6E8\] {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+
+html.dark .border-amber-200,
+html.dark .border-yellow-200,
+html.dark .border-orange-200,
+html.dark .border-amber-300 {
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+/* Red / Rose / Alpa / Jatuh Tempo / Belum Lunas */
+html.dark .text-red-900,
+html.dark .text-red-800,
+html.dark .text-red-700,
+html.dark .text-red-600,
+html.dark .text-rose-900,
+html.dark .text-rose-800,
+html.dark .text-rose-700 {
+  color: #FCA5A5 !important;
+}
+
+html.dark .bg-red-50,
+html.dark .bg-rose-50,
+html.dark .bg-red-100,
+html.dark .bg-rose-100,
+html.dark .bg-red-100\/80,
+html.dark .bg-red-500\/10,
+html.dark .bg-red-500\/15 {
+  background-color: rgba(239, 68, 68, 0.16) !important;
+}
+
+html.dark .border-red-200,
+html.dark .border-rose-200,
+html.dark .border-red-300 {
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+/* Blue / Indigo / Izin / Info */
+html.dark .text-blue-900,
+html.dark .text-blue-800,
+html.dark .text-blue-700,
+html.dark .text-blue-600,
+html.dark .text-indigo-800,
+html.dark .text-indigo-700,
+html.dark .text-sky-700 {
+  color: #93C5FD !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-sky-50,
+html.dark .bg-indigo-50,
+html.dark .bg-blue-100,
+html.dark .bg-blue-100\/80,
+html.dark .bg-blue-500\/10,
+html.dark .bg-blue-500\/15 {
+  background-color: rgba(59, 130, 246, 0.16) !important;
+}
+
+html.dark .border-blue-200,
+html.dark .border-sky-200,
+html.dark .border-indigo-200 {
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+/* Purple / Violet */
+html.dark .text-purple-900,
+html.dark .text-purple-800,
+html.dark .text-purple-700,
+html.dark .text-purple-600,
+html.dark .text-violet-700 {
+  color: #D8B4FE !important;
+}
+
+html.dark .bg-purple-50,
+html.dark .bg-violet-50,
+html.dark .bg-purple-100,
+html.dark .bg-purple-100\/80,
+html.dark .bg-brand-primary\/10,
+html.dark .bg-brand-primary\/15,
+html.dark .bg-brand-primary\/20 {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+}
+
+html.dark .border-purple-200,
+html.dark .border-violet-200 {
+  border-color: rgba(192, 132, 252, 0.35) !important;
+}
+
+/* Borders & Structural Dividers */
+html.dark .border-\[\#E4D8E6\], 
+html.dark .border-\[\#EAE3DC\], 
+html.dark .border-\[\#E0D8CC\], 
+html.dark .border-\[\#ECE5DB\],
+html.dark .border-\[\#F0EBE3\],
+html.dark .border-\[\#F3EDF5\],
+html.dark .border-\[\#E2DBD0\],
+html.dark .border-\[\#E8E1D7\],
+html.dark .border-\[\#EBE3D9\],
+html.dark .border-\[\#F2ECE4\],
+html.dark .border-\[\#EBE4DA\],
+html.dark .border-\[\#F0E6F2\],
+html.dark .border-\[\#EFEAE2\],
+html.dark .border-\[\#ECE3DA\],
+html.dark .border-\[\#E0D4E3\],
+html.dark .border-\[\#F0EAE1\],
+html.dark .border-\[\#F2EDE6\],
+html.dark .border-\[\#E2D6E6\],
+html.dark .border-\[\#EDE6DD\],
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: #3C3B4E !important;
+}
+
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-300 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #3C3B4E !important;
+}
+
+/* Form inputs & controls in Dark Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+html.dark textarea,
+html.dark select {
+  background-color: #242330 !important;
+  color: #F5F5FA !important;
+  border-color: #444358 !important;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  background-color: #2B2A3A !important;
+  color: #FFFFFF !important;
+  border-color: #D898E6 !important;
+  box-shadow: 0 0 0 2px rgba(216, 152, 230, 0.25) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #8E8DA0 !important;
+}
+
+html.dark select option {
+  background-color: #201F2B !important;
+  color: #F5F5FA !important;
+}
+
+/* Hover States */
+html.dark .hover\:bg-brand-light:hover,
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #323142 !important;
+}
+
+html.dark .hover\:text-brand-dark:hover {
+  color: #FFFFFF !important;
+}
+
+/* SVG and Radar Chart Enhancements */
+html.dark .fill-brand-dark,
+html.dark .fill-\[\#1E1B24\] {
+  fill: #F5F5FA !important;
+}
+
+html.dark .fill-\[\#8A4C93\] {
+  fill: #D898E6 !important;
+}
+
+html.dark .fill-gray-400,
+html.dark .fill-gray-500 {
+  fill: #A9A8BD !important;
+}
+
+html.dark .radar-grid-line,
+html.dark line.text-\[\#E4D8E6\] {
+  stroke: #48475E !important;
+  color: #48475E !important;
+}
+
+html.dark .radar-grid-poly,
+html.dark polygon.text-\[\#E2D6E6\] {
+  stroke: #48475E !important;
+  color: #48475E !important;
+}
+
+html.dark .radar-label-pill {
+  fill: #22212E !important;
+  stroke: #444358 !important;
+}
+
+/* Scrollbar for Dark Mode */
+html.dark ::-webkit-scrollbar-thumb {
+  background: #444358;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #D898E6;
+}
+
+/* Custom scrollbars for a clean look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E0D4E3;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8A4C93;
+}
+
+/* Custom Sleek Scrollbar for Fixed Sidebar Navigation (4px width) */
+.sleek-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.sleek-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb {
+  background: #D8D2CB;
+  border-radius: 9999px;
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8A4C93;
+}
+.sleek-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #D8D2CB transparent;
+}
+html.dark .sleek-scrollbar::-webkit-scrollbar-thumb {
+  background: #444358;
+}
+html.dark .sleek-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #D898E6;
+}
+html.dark .sleek-scrollbar {
+  scrollbar-color: #444358 transparent;
+}
+
+/* Sidebar Mobile Container Scrollbar & Overflow */
+.sidebar-mobile-container {
+  max-height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-mobile-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar-mobile-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-mobile-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+.sidebar-mobile-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+html.dark .sidebar-mobile-container {
+  scrollbar-color: #4b5563 transparent;
+}
+
+html.dark .sidebar-mobile-container::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+html.dark .sidebar-mobile-container::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Hide scrollbar for clean horizontal tab scrolling on touch devices */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Running Text / Advertisement Marquee Animation */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  animation: marquee-scroll 22s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Touch responsiveness enhancement */
+@media (max-width: 640px) {
+  button, select, input, a {
+    touch-action: manipulation;
+  }
+}
