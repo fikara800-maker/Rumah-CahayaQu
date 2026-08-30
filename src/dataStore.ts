@@ -1,4 +1,4 @@
-import { BimbelState, UserAccount, BankAccountInfo, BimbelLocation, Student } from './types';
+import { BimbelState, UserAccount, BankAccountInfo, BimbelLocation, Student, BimbelBrandingSettings } from './types';
 import { deduplicateChats } from './utils/chatUtils';
 
 export const SUPER_ADMIN_ACCOUNT: UserAccount = {
@@ -8,6 +8,19 @@ export const SUPER_ADMIN_ACCOUNT: UserAccount = {
   name: 'Pemilik (Admin)',
   role: 'admin',
   createdAt: '2026-07-01',
+};
+
+export const DEFAULT_BRANDING_SETTINGS: BimbelBrandingSettings = {
+  customLogoUrl: null,
+  institutionName: 'Bimbel Rumah CahayaQu',
+  institutionAddress: 'Jangga, Kec. Losarang, Kabupaten Indramayu, Jawa Barat 45253',
+  institutionPhone: '0812-3456-7890',
+  institutionEmail: 'cahayaqu.bimbel@gmail.com',
+  institutionTagline: 'Membimbing dengan Hati, Menuntun Menuju Prestasi Qurani & Akademik',
+  headmasterName: 'Defika, S.Pd.',
+  headmasterSignatureUrl: null,
+  teacherSignatureUrl: null,
+  updatedAt: '2026-08-27',
 };
 
 export const DEFAULT_BANK_ACCOUNT: BankAccountInfo = {
@@ -46,6 +59,7 @@ export const INITIAL_EMPTY_STATE: BimbelState = {
   bankAccount: DEFAULT_BANK_ACCOUNT,
   locations: DEFAULT_BIMBEL_LOCATIONS,
   activeLocationId: 'loc-pusat',
+  branding: DEFAULT_BRANDING_SETTINGS,
 };
 
 export const DEMO_TEACHERS: UserAccount[] = [
@@ -620,6 +634,9 @@ export function loadBimbelState(): BimbelState {
         }
         if (!parsed.activeLocationId || parsed.activeLocationId === 'loc-pusat') {
           parsed.activeLocationId = 'loc-pusat-jangga';
+        }
+        if (!parsed.branding) {
+          parsed.branding = DEFAULT_BRANDING_SETTINGS;
         }
         const { state: sanitized } = sanitizeBimbelState(parsed);
         return sanitized || { ...INITIAL_EMPTY_STATE };

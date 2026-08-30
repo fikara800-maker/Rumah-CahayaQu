@@ -163,6 +163,19 @@ export interface BimbelLocation {
   updatedAt?: string;
 }
 
+export interface BimbelBrandingSettings {
+  customLogoUrl: string | null;
+  institutionName: string;
+  institutionAddress: string;
+  institutionPhone: string;
+  institutionEmail?: string;
+  institutionTagline: string;
+  headmasterName?: string;
+  headmasterSignatureUrl?: string | null;
+  teacherSignatureUrl?: string | null;
+  updatedAt?: string;
+}
+
 export interface BimbelState {
   users: UserAccount[];
   students: Student[];
@@ -177,4 +190,5 @@ export interface BimbelState {
   bankAccount?: BankAccountInfo;
   locations?: BimbelLocation[];
   activeLocationId?: string;
+  branding?: BimbelBrandingSettings;
 }

@@ -53,7 +53,7 @@ import {
   Square,
   GraduationCap
 } from 'lucide-react';
-import { Student, Invoice, ScheduleItem, BimbelState, UserAccount, BroadcastMessage, BankAccountInfo, TeacherAttendance, BimbelLocation, Assessment, Attendance } from '../../types';
+import { Student, Invoice, ScheduleItem, BimbelState, UserAccount, BroadcastMessage, BankAccountInfo, TeacherAttendance, BimbelLocation, Assessment, Attendance, BimbelBrandingSettings } from '../../types';
 import { BimbelLocationManager } from '../admin/BimbelLocationManager';
 import { ReportExportModal } from '../modals/ReportExportModal';
 import Logo from '../common/Logo';
@@ -95,6 +95,7 @@ interface AdminPortalProps {
   schedules: ScheduleItem[];
   broadcasts?: BroadcastMessage[];
   bankAccount?: BankAccountInfo;
+  branding?: BimbelBrandingSettings;
   teacherAttendance?: TeacherAttendance[];
   locations?: BimbelLocation[];
   assessments?: Assessment[];
@@ -116,6 +117,7 @@ interface AdminPortalProps {
   onUpdateBroadcast?: (broadcast: BroadcastMessage) => void;
   onDeleteBroadcast?: (id: string) => void;
   onUpdateBankAccount?: (bankAccount: BankAccountInfo) => void;
+  onUpdateBranding?: (branding: Partial<BimbelBrandingSettings>) => void;
   onUpdateTeacherAttendanceBulk?: (records: TeacherAttendance[]) => void;
   onDeleteTeacherAttendance?: (id: string) => void;
   onUpdateAttendanceBulk?: (records: Attendance[]) => void;
@@ -137,6 +139,7 @@ export default function AdminPortal({
   schedules,
   broadcasts = [],
   bankAccount,
+  branding,
   teacherAttendance = [],
   locations = [],
   assessments = [],
@@ -158,6 +161,7 @@ export default function AdminPortal({
   onUpdateBroadcast,
   onDeleteBroadcast,
   onUpdateBankAccount,
+  onUpdateBranding,
   onUpdateTeacherAttendanceBulk,
   onDeleteTeacherAttendance,
   onUpdateAttendanceBulk,
@@ -195,6 +199,7 @@ export default function AdminPortal({
 
   // School Identity & Official Contact State
   const [schoolName, setSchoolName] = useState<string>(() => {
+    if (branding?.institutionName) return branding.institutionName;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -208,6 +213,7 @@ export default function AdminPortal({
   });
 
   const [schoolTagline, setSchoolTagline] = useState<string>(() => {
+    if (branding?.institutionTagline) return branding.institutionTagline;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -221,6 +227,7 @@ export default function AdminPortal({
   });
 
   const [schoolAddress, setSchoolAddress] = useState<string>(() => {
+    if (branding?.institutionAddress) return branding.institutionAddress;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -234,6 +241,7 @@ export default function AdminPortal({
   });
 
   const [schoolPhone, setSchoolPhone] = useState<string>(() => {
+    if (branding?.institutionPhone) return branding.institutionPhone;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -247,6 +255,7 @@ export default function AdminPortal({
   });
 
   const [schoolEmail, setSchoolEmail] = useState<string>(() => {
+    if (branding?.institutionEmail) return branding.institutionEmail;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -260,6 +269,7 @@ export default function AdminPortal({
   });
 
   const [schoolHeadmaster, setSchoolHeadmaster] = useState<string>(() => {
+    if (branding?.headmasterName) return branding.headmasterName;
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('bimbel_school_info');
@@ -272,20 +282,40 @@ export default function AdminPortal({
     return DEFAULT_SCHOOL_INFO.headmaster;
   });
 
-  const [currentCustomLogo, setCurrentCustomLogo] = useState<string | null>(null);
+  const [currentCustomLogo, setCurrentCustomLogo] = useState<string | null>(() => {
+    if (branding?.customLogoUrl !== undefined) return branding.customLogoUrl;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bimbel_custom_logo');
+    }
+    return null;
+  });
   const [isSavingSchoolInfo, setIsSavingSchoolInfo] = useState<boolean>(false);
   const quickLogoFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
-  // Sync Logo and School Info from localStorage and event listeners
+  // Sync Logo and School Info from props, localStorage, and event listeners
+  React.useEffect(() => {
+    if (branding) {
+      if (branding.institutionName) setSchoolName(branding.institutionName);
+      if (branding.institutionTagline) setSchoolTagline(branding.institutionTagline);
+      if (branding.institutionAddress) setSchoolAddress(branding.institutionAddress);
+      if (branding.institutionPhone) setSchoolPhone(branding.institutionPhone);
+      if (branding.institutionEmail) setSchoolEmail(branding.institutionEmail);
+      if (branding.headmasterName) setSchoolHeadmaster(branding.headmasterName);
+      if (branding.customLogoUrl !== undefined) setCurrentCustomLogo(branding.customLogoUrl);
+    }
+  }, [branding]);
+
   React.useEffect(() => {
     const checkLogoAndInfo = () => {
       if (typeof window !== 'undefined') {
         const savedLogo = localStorage.getItem('bimbel_custom_logo');
-        setCurrentCustomLogo(savedLogo || null);
+        if (branding?.customLogoUrl === undefined) {
+          setCurrentCustomLogo(savedLogo || null);
+        }
 
         try {
           const savedInfo = localStorage.getItem('bimbel_school_info');
-          if (savedInfo) {
+          if (savedInfo && !branding) {
             const parsed = JSON.parse(savedInfo);
             if (parsed.name) setSchoolName(parsed.name);
             if (parsed.tagline) setSchoolTagline(parsed.tagline);
@@ -310,7 +340,7 @@ export default function AdminPortal({
       window.removeEventListener('bimbel_school_info_updated', handleUpdates);
       window.removeEventListener('storage', handleUpdates);
     };
-  }, []);
+  }, [branding]);
 
   const handleSaveSchoolInfo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -331,6 +361,16 @@ export default function AdminPortal({
       localStorage.setItem('bimbel_school_info', JSON.stringify(infoObj));
       window.dispatchEvent(new Event('bimbel_school_info_updated'));
     }
+    if (onUpdateBranding) {
+      onUpdateBranding({
+        institutionName: schoolName.trim(),
+        institutionTagline: schoolTagline.trim(),
+        institutionAddress: schoolAddress.trim(),
+        institutionPhone: schoolPhone.trim(),
+        institutionEmail: schoolEmail.trim(),
+        headmasterName: schoolHeadmaster.trim(),
+      });
+    }
     setTimeout(() => {
       setIsSavingSchoolInfo(false);
       triggerToast('Identitas & Kontak Resmi Bimbel berhasil disimpan dan disinkronkan ke seluruh sistem!');
@@ -348,6 +388,16 @@ export default function AdminPortal({
     if (typeof window !== 'undefined') {
       localStorage.setItem('bimbel_school_info', JSON.stringify(DEFAULT_SCHOOL_INFO));
       window.dispatchEvent(new Event('bimbel_school_info_updated'));
+    }
+    if (onUpdateBranding) {
+      onUpdateBranding({
+        institutionName: DEFAULT_SCHOOL_INFO.name,
+        institutionTagline: DEFAULT_SCHOOL_INFO.tagline,
+        institutionAddress: DEFAULT_SCHOOL_INFO.address,
+        institutionPhone: DEFAULT_SCHOOL_INFO.phone,
+        institutionEmail: DEFAULT_SCHOOL_INFO.email,
+        headmasterName: DEFAULT_SCHOOL_INFO.headmaster,
+      });
     }
     triggerToast('Identitas bimbel telah dikembalikan ke standar bawaan.');
   };
@@ -369,6 +419,9 @@ export default function AdminPortal({
         localStorage.setItem('bimbel_custom_logo', dataUrl);
         window.dispatchEvent(new Event('bimbel_logo_updated'));
       }
+      if (onUpdateBranding) {
+        onUpdateBranding({ customLogoUrl: dataUrl });
+      }
       triggerToast('Logo resmi bimbel berhasil diperbarui di semua halaman & cetak dokumen!');
     };
     reader.readAsDataURL(file);
@@ -380,6 +433,9 @@ export default function AdminPortal({
       window.dispatchEvent(new Event('bimbel_logo_updated'));
     }
     setCurrentCustomLogo(null);
+    if (onUpdateBranding) {
+      onUpdateBranding({ customLogoUrl: null });
+    }
     triggerToast('Logo dikembalikan ke lambang resmi default Rumah CahayaQu.');
   };
 
@@ -5670,6 +5726,11 @@ export default function AdminPortal({
         <LogoCustomizerModal
           isOpen={isLogoModalOpen}
           onClose={() => setIsLogoModalOpen(false)}
+          onSuccess={(newLogoUrl) => {
+            if (onUpdateBranding) {
+              onUpdateBranding({ customLogoUrl: newLogoUrl });
+            }
+          }}
         />
       )}
 

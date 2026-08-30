@@ -21,9 +21,10 @@ import {
   ScheduleItem, 
   BroadcastMessage,
   BankAccountInfo,
-  BimbelLocation
+  BimbelLocation,
+  BimbelBrandingSettings
 } from '../../types';
-import { INITIAL_EMPTY_STATE, DEFAULT_BANK_ACCOUNT, DEFAULT_BIMBEL_LOCATIONS, sanitizeBimbelState } from '../../dataStore';
+import { INITIAL_EMPTY_STATE, DEFAULT_BANK_ACCOUNT, DEFAULT_BIMBEL_LOCATIONS, DEFAULT_BRANDING_SETTINGS, sanitizeBimbelState } from '../../dataStore';
 
 // Helper to purge all master data (students, teachers, etc.) from Firestore and leave clean slate
 export async function clearFirestoreCollections() {
@@ -81,7 +82,7 @@ export async function seedInitialFirestoreData() {
   try {
     const usersSnap = await getDocs(collection(db, 'users'));
     if (usersSnap.empty) {
-      console.log('Initializing super admin account to Firebase Firestore...');
+      console.log('Initializing super admin account and branding to Firebase Firestore...');
       const batch = writeBatch(db);
       INITIAL_EMPTY_STATE.users.forEach(item => {
         batch.set(doc(db, 'users', item.id), item);
@@ -91,6 +92,12 @@ export async function seedInitialFirestoreData() {
           batch.set(doc(db, 'locations', item.id), item);
         });
       }
+      if (INITIAL_EMPTY_STATE.branding) {
+        batch.set(doc(db, 'settings', 'branding'), INITIAL_EMPTY_STATE.branding);
+      }
+      if (INITIAL_EMPTY_STATE.bankAccount) {
+        batch.set(doc(db, 'settings', 'bankAccount'), INITIAL_EMPTY_STATE.bankAccount);
+      }
       await batch.commit();
     }
   } catch (error) {
@@ -98,7 +105,7 @@ export async function seedInitialFirestoreData() {
   }
 }
 
-// Save full state back to Firestore collections
+// Save full state back to Firestore collections safely
 export async function syncStateToFirestore(state: BimbelState) {
   try {
     const batch = writeBatch(db);
@@ -122,6 +129,9 @@ export async function syncStateToFirestore(state: BimbelState) {
     if (state.bankAccount) {
       batch.set(doc(db, 'settings', 'bankAccount'), state.bankAccount);
     }
+    if (state.branding) {
+      batch.set(doc(db, 'settings', 'branding'), state.branding);
+    }
 
     await batch.commit();
   } catch (error) {
@@ -134,6 +144,59 @@ export async function firestoreUpdateBankAccount(bankAccount: BankAccountInfo) {
     await setDoc(doc(db, 'settings', 'bankAccount'), bankAccount);
   } catch (err) {
     console.error('Firestore update bank account failed:', err);
+  }
+}
+
+export async function firestoreUpdateBranding(branding: Partial<BimbelBrandingSettings>) {
+  try {
+    await setDoc(doc(db, 'settings', 'branding'), {
+      ...DEFAULT_BRANDING_SETTINGS,
+      ...branding,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+
+    // Synchronize to localStorage for offline cache and trigger instant UI events
+    if (typeof window !== 'undefined') {
+      if (branding.customLogoUrl !== undefined) {
+        if (branding.customLogoUrl) {
+          localStorage.setItem('bimbel_custom_logo', branding.customLogoUrl);
+        } else {
+          localStorage.removeItem('bimbel_custom_logo');
+        }
+      }
+      if (branding.headmasterSignatureUrl !== undefined) {
+        if (branding.headmasterSignatureUrl) {
+          localStorage.setItem('bimbel_headmaster_signature', branding.headmasterSignatureUrl);
+        } else {
+          localStorage.removeItem('bimbel_headmaster_signature');
+        }
+      }
+      if (branding.headmasterName !== undefined) {
+        localStorage.setItem('bimbel_headmaster_name', branding.headmasterName);
+      }
+      if (branding.teacherSignatureUrl !== undefined) {
+        if (branding.teacherSignatureUrl) {
+          localStorage.setItem('bimbel_teacher_signature', branding.teacherSignatureUrl);
+        } else {
+          localStorage.removeItem('bimbel_teacher_signature');
+        }
+      }
+      if (branding.institutionName || branding.institutionAddress || branding.institutionPhone) {
+        const currentSchoolInfo = {
+          name: branding.institutionName || DEFAULT_BRANDING_SETTINGS.institutionName,
+          tagline: branding.institutionTagline || DEFAULT_BRANDING_SETTINGS.institutionTagline,
+          address: branding.institutionAddress || DEFAULT_BRANDING_SETTINGS.institutionAddress,
+          phone: branding.institutionPhone || DEFAULT_BRANDING_SETTINGS.institutionPhone,
+          email: 'rumahcahayaqu@gmail.com',
+          headmaster: branding.headmasterName || DEFAULT_BRANDING_SETTINGS.headmasterName || 'Defika, S.Pd.',
+        };
+        localStorage.setItem('bimbel_school_info', JSON.stringify(currentSchoolInfo));
+        window.dispatchEvent(new Event('bimbel_school_info_updated'));
+      }
+      window.dispatchEvent(new Event('bimbel_logo_updated'));
+    }
+  } catch (err) {
+    console.error('Firestore update branding failed:', err);
   }
 }
 
@@ -403,6 +466,7 @@ export function subscribeToBimbelState(
     bankAccount: DEFAULT_BANK_ACCOUNT,
     locations: DEFAULT_BIMBEL_LOCATIONS,
     activeLocationId: 'loc-pusat',
+    branding: DEFAULT_BRANDING_SETTINGS,
   };
 
   let hasSeeded = false;
@@ -456,17 +520,10 @@ export function subscribeToBimbelState(
       bankAccount: collectionsData.bankAccount || DEFAULT_BANK_ACCOUNT,
       locations,
       activeLocationId: collectionsData.activeLocationId || locations.find(l => l.isDefault)?.id || locations[0]?.id || 'loc-pusat',
+      branding: collectionsData.branding || DEFAULT_BRANDING_SETTINGS,
     };
 
-    const { state: sanitizedState, hasChanges } = sanitizeBimbelState(assembledState);
-
-    if (hasChanges) {
-      // Sync corrected items to Firestore asynchronously
-      syncStateToFirestore(sanitizedState).catch(err => {
-        console.warn('Auto-sync of sanitized state failed:', err);
-      });
-    }
-
+    const { state: sanitizedState } = sanitizeBimbelState(assembledState);
     onUpdate(sanitizedState);
   };
 
@@ -476,6 +533,47 @@ export function subscribeToBimbelState(
   };
 
   const unsubscribes = [
+    onSnapshot(doc(db, 'settings', 'branding'), docSnap => {
+      if (docSnap.exists()) {
+        const brandingData = docSnap.data() as BimbelBrandingSettings;
+        collectionsData.branding = {
+          ...DEFAULT_BRANDING_SETTINGS,
+          ...brandingData,
+        };
+        // Mirror to localStorage so components and print templates immediately reflect custom logo & signatures
+        if (typeof window !== 'undefined') {
+          if (brandingData.customLogoUrl) {
+            localStorage.setItem('bimbel_custom_logo', brandingData.customLogoUrl);
+          } else {
+            localStorage.removeItem('bimbel_custom_logo');
+          }
+          if (brandingData.headmasterSignatureUrl) {
+            localStorage.setItem('bimbel_headmaster_signature', brandingData.headmasterSignatureUrl);
+          }
+          if (brandingData.headmasterName) {
+            localStorage.setItem('bimbel_headmaster_name', brandingData.headmasterName);
+          }
+          if (brandingData.teacherSignatureUrl) {
+            localStorage.setItem('bimbel_teacher_signature', brandingData.teacherSignatureUrl);
+          }
+          if (brandingData.institutionName || brandingData.institutionAddress || brandingData.institutionPhone) {
+            const currentSchoolInfo = {
+              name: brandingData.institutionName || DEFAULT_BRANDING_SETTINGS.institutionName,
+              tagline: brandingData.institutionTagline || DEFAULT_BRANDING_SETTINGS.institutionTagline,
+              address: brandingData.institutionAddress || DEFAULT_BRANDING_SETTINGS.institutionAddress,
+              phone: brandingData.institutionPhone || DEFAULT_BRANDING_SETTINGS.institutionPhone,
+              email: 'rumahcahayaqu@gmail.com',
+              headmaster: brandingData.headmasterName || DEFAULT_BRANDING_SETTINGS.headmasterName || 'Defika, S.Pd.',
+            };
+            localStorage.setItem('bimbel_school_info', JSON.stringify(currentSchoolInfo));
+            window.dispatchEvent(new Event('bimbel_school_info_updated'));
+          }
+          window.dispatchEvent(new Event('bimbel_logo_updated'));
+        }
+        checkAndEmit();
+      }
+    }, handleListenerError),
+
     onSnapshot(doc(db, 'settings', 'bankAccount'), docSnap => {
       if (docSnap.exists()) {
         collectionsData.bankAccount = docSnap.data() as BankAccountInfo;
@@ -492,6 +590,7 @@ export function subscribeToBimbelState(
 
     onSnapshot(collection(db, 'users'), snap => {
       collectionsData.users = snap.docs.map(d => d.data() as UserAccount);
+      onStatusChange(true);
       checkAndEmit();
     }, handleListenerError),
 

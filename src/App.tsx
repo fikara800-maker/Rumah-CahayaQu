@@ -48,13 +48,15 @@ import {
   ScheduleItem, 
   BroadcastMessage,
   BankAccountInfo,
-  BimbelLocation
+  BimbelLocation,
+  BimbelBrandingSettings
 } from './types';
 import { 
   loadBimbelState, 
   saveBimbelState, 
   INITIAL_EMPTY_STATE, 
-  DEMO_STATE 
+  DEMO_STATE,
+  DEFAULT_BRANDING_SETTINGS
 } from './dataStore';
 import {
   subscribeToBimbelState,
@@ -84,6 +86,7 @@ import {
   firestoreAddSchedule,
   firestoreDeleteSchedule,
   firestoreUpdateBankAccount,
+  firestoreUpdateBranding,
   firestoreAddLocation,
   firestoreUpdateLocation,
   firestoreDeleteLocation
@@ -834,6 +837,22 @@ export default function App() {
     updateAndSaveState(nextState);
   };
 
+  const handleUpdateBranding = (newBranding: Partial<BimbelBrandingSettings>) => {
+    const updatedBranding: BimbelBrandingSettings = {
+      ...(state.branding || DEFAULT_BRANDING_SETTINGS),
+      ...newBranding,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const nextState: BimbelState = {
+      ...state,
+      branding: updatedBranding,
+    };
+
+    firestoreUpdateBranding(newBranding);
+    updateAndSaveState(nextState);
+  };
+
   // Clear state to have a 100% empty canvas ready for the user
   const clearToEmptyState = async () => {
     await clearFirestoreCollections();
@@ -1426,6 +1445,8 @@ export default function App() {
                 schedules={state.schedules}
                 broadcasts={state.broadcasts}
                 bankAccount={state.bankAccount}
+                branding={state.branding}
+                onUpdateBranding={handleUpdateBranding}
                 teacherAttendance={state.teacherAttendance || []}
                 locations={state.locations || []}
                 assessments={state.assessments || []}
