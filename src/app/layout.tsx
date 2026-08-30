@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import "../index.css";
 
 export const metadata: Metadata = {
-  title: "Remix Remix Remix Remix Rumah CahayaQu",
+  title: "Rumah CahayaQu - Sistem Informasi & Bimbingan Belajar",
   description: "An all-in-one digital platform for tutoring centers featuring interactive growth tracking, attendance, billing, and seamless parent-teacher communication.",
   openGraph: {
-    title: "Remix Remix Remix Remix Rumah CahayaQu",
+    title: "Rumah CahayaQu - Sistem Informasi & Bimbingan Belajar",
     description: "An all-in-one digital platform for tutoring centers featuring interactive growth tracking, attendance, billing, and seamless parent-teacher communication.",
   },
 };
