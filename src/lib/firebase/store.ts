@@ -225,6 +225,23 @@ export async function firestoreDeleteUser(userId: string) {
   }
 }
 
+// Direct on-demand fetch of users and students from Firestore for instant login
+export async function firestoreDirectFetchUsersAndStudents(): Promise<{ users: UserAccount[]; students: Student[] }> {
+  try {
+    const [usersSnap, studentsSnap] = await Promise.all([
+      getDocs(collection(db, 'users')),
+      getDocs(collection(db, 'students')),
+    ]);
+
+    const users: UserAccount[] = usersSnap.docs.map(d => d.data() as UserAccount);
+    const students: Student[] = studentsSnap.docs.map(d => d.data() as Student);
+    return { users, students };
+  } catch (err) {
+    console.warn('Direct Firestore fetch error:', err);
+    return { users: [], students: [] };
+  }
+}
+
 // Individual Firestore helper functions
 export async function firestoreAddStudent(student: Student, invoice?: Invoice | null, schedule?: ScheduleItem | null) {
   try {

@@ -499,6 +499,14 @@ export const DEMO_STATE: BimbelState = {
 
 const LOCAL_STORAGE_KEY = 'bimbel_hub_state_clean_v8';
 
+export function normalizeIndonesianPhone(phone?: string): string {
+  if (!phone) return '';
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('62')) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  return digits;
+}
+
 export function sanitizeBimbelState(rawState: BimbelState): { state: BimbelState; hasChanges: boolean } {
   let hasChanges = false;
   if (!rawState) return { state: { ...INITIAL_EMPTY_STATE }, hasChanges: false };
@@ -610,8 +618,51 @@ export function sanitizeBimbelState(rawState: BimbelState): { state: BimbelState
     return chat;
   });
 
+  // 4. Ensure all students have a corresponding Parent UserAccount in users
+  const currentUsers = rawState.users || [];
+  const nextUsers = [...currentUsers];
+
+  (updatedStudents || []).forEach(stud => {
+    const parentNorm = normalizeIndonesianPhone(stud.parentPhone);
+    const parentNameLower = (stud.parentName || '').trim().toLowerCase();
+
+    const existing = nextUsers.find(u => {
+      const uNorm = normalizeIndonesianPhone(u.phone);
+      const uNameLower = (u.name || '').trim().toLowerCase();
+      const uChildLower = (u.childName || '').trim().toLowerCase();
+
+      const phoneMatch = Boolean(parentNorm.length >= 6 && uNorm.length >= 6 && (parentNorm === uNorm || uNorm.includes(parentNorm) || parentNorm.includes(uNorm)));
+      const nameMatch = parentNameLower.length >= 3 && uNameLower.length >= 3 && (parentNameLower === uNameLower || uNameLower.includes(parentNameLower) || parentNameLower.includes(uNameLower));
+      const childMatch = Boolean(stud.name && uChildLower && stud.name.trim().toLowerCase() === uChildLower);
+
+      return phoneMatch || nameMatch || childMatch;
+    });
+
+    if (!existing && stud.parentName && stud.parentName.trim() !== '') {
+      hasChanges = true;
+      const digits = (stud.parentPhone || '').replace(/\D/g, '');
+      const cleanEmail = digits.length >= 6
+        ? `wali_${digits}@cahayaqu.id`
+        : `${stud.parentName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'wali'}@gmail.com`;
+
+      const newParentUser: UserAccount = {
+        id: `usr-parent-${stud.id || Date.now()}`,
+        name: stud.parentName,
+        email: cleanEmail,
+        phone: stud.parentPhone || '081234567890',
+        childName: stud.name,
+        subject: typeof stud.className === 'string' ? stud.className : 'Membaca',
+        role: 'parent',
+        password: 'ortu123',
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      nextUsers.push(newParentUser);
+    }
+  });
+
   const nextState: BimbelState = {
     ...rawState,
+    users: nextUsers,
     schedules: updatedSchedules,
     students: updatedStudents,
     chats: updatedChats,

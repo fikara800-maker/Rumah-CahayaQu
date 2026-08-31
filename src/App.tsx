@@ -203,6 +203,12 @@ export default function App() {
   // Auth Handlers
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUser(user);
+    if (!state.users.some(u => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()))) {
+      setState(prev => ({
+        ...prev,
+        users: [...prev.users, user],
+      }));
+    }
     if (user.role === 'admin') {
       setActivePortal('admin');
     } else if (user.role === 'teacher') {
@@ -389,8 +395,39 @@ export default function App() {
       studentName: studentWithId.name,
     };
 
+    // Auto-create / sync parent account so parents can immediately log in with WhatsApp or Name
+    const parentPhoneDigits = (studentWithId.parentPhone || '').replace(/\D/g, '');
+    const cleanParentEmail = parentPhoneDigits.length >= 6
+      ? `wali_${parentPhoneDigits}@cahayaqu.id`
+      : `${studentWithId.parentName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'wali'}@gmail.com`;
+
+    const existingParentUser = state.users.find(u => {
+      const uPhoneDigits = (u.phone || '').replace(/\D/g, '');
+      const phoneMatch = Boolean(parentPhoneDigits.length >= 6 && uPhoneDigits.length >= 6 && (parentPhoneDigits === uPhoneDigits || uPhoneDigits.endsWith(parentPhoneDigits) || parentPhoneDigits.endsWith(uPhoneDigits)));
+      const nameMatch = u.name.toLowerCase() === studentWithId.parentName.toLowerCase();
+      return phoneMatch || nameMatch;
+    });
+
+    let nextUsers = state.users;
+    if (!existingParentUser && studentWithId.parentName) {
+      const parentUserAccount: UserAccount = {
+        id: `usr-parent-${Date.now()}`,
+        name: studentWithId.parentName,
+        email: cleanParentEmail,
+        phone: studentWithId.parentPhone || '081234567890',
+        childName: studentWithId.name,
+        subject: typeof studentWithId.className === 'string' ? studentWithId.className : 'Membaca',
+        role: 'parent',
+        password: 'ortu123',
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      nextUsers = [...state.users, parentUserAccount];
+      firestoreAddUser(parentUserAccount);
+    }
+
     const nextState: BimbelState = {
       ...state,
+      users: nextUsers,
       students: [...state.students, studentWithId],
       schedules: [...state.schedules, newSchedule],
     };
